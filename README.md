@@ -1,66 +1,205 @@
-# ERC20-Counter Example
+# 🔍 DeFi Evaluation Prover
 
-This example implements a counter that increments based on off-chain RISC Zero [Steel] proofs submitted to the [Counter] contract.
-The contract interacts with ERC-20 tokens, using [Steel] proofs to verify that an account holds at least 1 token before incrementing the counter.
+> **Empowering Impact Evaluators with cryptographic proofs for smarter onchain decisions**
 
-## Overview
+## 🎯 The Challenge
 
-The [Counter] contract is designed to interact with the Ethereum blockchain, leveraging the power of RISC Zero [Steel] proofs to perform a specific operation: incrementing a counter based on the token holdings of an account.
+Impact Evaluators face a critical problem: how do you make informed decisions about DeFi protocols and their real-world impact without reliable, verifiable data? 
 
-### Contract Functionality
+Traditional onchain metrics are often:
+- 🚫 Unverifiable or easily manipulated
+- 📊 Incomplete or lacking historical context
+- 🔒 Expensive to compute and verify onchain
+- ⏱️ Not real-time or sufficiently granular
 
-#### Increment Counter
+**This is where zkVM comes in.** By generating zero-knowledge proofs for complex DeFi measurements, Impact Evaluators can finally access the trustless, accurate economic data they need to allocate resources effectively and measure true protocol impact.
 
-The core functionality of the [Counter] contract is to increment an internal counter whenever a valid proof was submitted.
-This proof must demonstrate that a specified account holds at least one unit of a particular ERC-20 token.
-The contract ensures that the counter is only incremented when the proof is verified and the condition of holding at least one token is met.
+## 💡 The Solution
 
-#### Steel Proof Submission
+This repository provides a suite of RISC Zero zkVM programs that generate cryptographic proofs for essential DeFi metrics. These proofs give Impact Evaluators verifiable, trustless data to inform their onchain decisions—no oracles, no trust assumptions, just math.
 
-Users or entities can submit proofs to the [Counter] contract.
-These proofs are generated off-chain using the RISC Zero zkVM.
-The proof encapsulates the verification of an account's token balance without exposing the account's details or requiring direct on-chain queries.
+### What Can You Measure?
 
-#### Token Balance Verification
+- **📈 Token Inflation**: Calculate exact inflation rates between any two blocks in basis points
+- **💰 Compound APR**: Verify actual lending protocol yields with cryptographic certainty
+- **🔄 Circulating Supply**: Track real circulating supply by excluding treasury/reserve addresses
+- **🚀 And More**: Extensible framework for any DeFi metric Impact Evaluators need
 
-Upon receiving a [Steel] proof, the [Counter] contract decodes the proof and validates it against the contract's state at a certain block height.
-This ensures that the account in question actually holds at least one token at the time the proof was generated.
+## 🏃‍♂️ Quick Start
 
-#### Counter Management
-
-The contract maintains an internal counter, which is publicly viewable.
-This counter represents the number of successful verifications that have occurred.
-The contract includes functionality to query the current value of the counter at any time.
-
-## Dependencies
-
-To get started, you need to have the following installed:
-
-- [Rust]
-- [Foundry]
-- [RISC Zero]
-
-### Configuring Bonsai
-
-***Note:*** *To request an API key [complete the form here](https://bonsai.xyz/apply).*
-
-With the Bonsai proving service, you can produce a [Groth16 SNARK proof] that is verifiable on-chain.
-You can get started by setting the following environment variables with your API key and associated URL.
+Get inflation data for any token in just 3 steps:
 
 ```bash
-export BONSAI_API_KEY="YOUR_API_KEY" # see form linked above
-export BONSAI_API_URL="BONSAI_URL" # provided with your api key
+# 1. Create your .env file
+cat > .env << 'EOF'
+ETH_WALLET_ADDRESS=0xYourAddress
+ETH_WALLET_PRIVATE_KEY=0xYourPrivateKey
+ETH_RPC_URL=https://eth-mainnet.g.alchemy.com/v2/YOUR_KEY
+TOKEN_ADDRESS=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48  # USDC example
+TOKEN_OWNER_2=0xReserveAddress  # Treasury/reserve to exclude
+PAST_BLOCK_NUMBER=0x12345  # Historical block for comparison
+EOF
+
+# 2. Source the environment
+source .env
+
+# 3. Run the inflation calculator!
+./e2e-test.sh
 ```
 
-## Deploy Your Application
+That's it! You'll get a verifiable proof of token inflation that can be used onchain. 🎉
 
-When you're ready, follow the [deployment guide] to get your application running on [Sepolia] or a local network.
+## 📊 What Impact Evaluators Get
 
-[Foundry]: https://getfoundry.sh/
-[Groth16 SNARK proof]: https://www.risczero.com/news/on-chain-verification
-[RISC Zero]: https://dev.risczero.com/api/zkvm/install
-[Sepolia]: https://www.alchemy.com/overviews/sepolia-testnet
-[deployment guide]: ./deployment-guide.md
-[Rust]: https://doc.rust-lang.org/cargo/getting-started/installation.html
-[Counter]: ./contracts/src/Counter.sol
-[Steel]: https://www.risczero.com/blog/introducing-steel
+When you run the basic inflation example, you receive:
+
+```solidity
+struct ProofData {
+    uint256 circulatingSupply;       // Current circulating supply
+    uint256 pastCirculatingSupply;   // Historical circulating supply
+    uint256 inflationBasisPoints;    // Inflation rate (100 = 1%)
+    bytes32 commitment;               // Cryptographic commitment to the state
+}
+```
+
+This data is:
+- ✅ **Cryptographically verified** - Can't be faked or manipulated
+- ✅ **Historical** - Compare any two points in time
+- ✅ **Granular** - Basis point precision for accurate measurements
+- ✅ **Efficient** - Cheap to verify onchain
+
+## 🛠️ Environment Setup
+
+### Required Variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `ETH_WALLET_ADDRESS` | Your wallet address | `0x123...abc` |
+| `ETH_WALLET_PRIVATE_KEY` | Private key for transactions | `0xabc...123` |
+| `ETH_RPC_URL` | Ethereum RPC endpoint | `https://eth-mainnet.g.alchemy.com/v2/KEY` |
+| `TOKEN_ADDRESS` | ERC-20 token to analyze | `0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48` |
+| `TOKEN_OWNER_2` | Treasury/reserve address to exclude | `0x456...def` |
+| `PAST_BLOCK_NUMBER` | Historical block for comparison | `0x108b280` |
+
+### Optional Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `BONSAI_API_KEY` | For remote proving (faster) | Local proving |
+| `BONSAI_API_URL` | Bonsai service endpoint | - |
+| `HISTORY_BLOCKS` | Blocks to wait for finality | 0 |
+
+## 🔬 Advanced Usage
+
+### Running the Compound APR Analyzer
+
+Track real yields from Compound protocol:
+
+```bash
+source .env
+./e2e-compound.sh
+```
+
+This generates proofs of actual APR that Impact Evaluators can use to:
+- Compare protocol efficiency
+- Verify advertised yields
+- Track lending market health
+
+### Building Custom Metrics
+
+Impact Evaluators often need specific metrics. Here's how to add your own:
+
+1. Create a new guest program in `methods/guest/src/bin/`
+2. Define your metric calculation using Steel
+3. Generate proofs that Impact Evaluators can verify onchain
+
+Example metrics to build:
+- **TVL Changes**: Prove total value locked over time
+- **User Activity**: Verify unique users or transaction counts
+- **Protocol Revenue**: Calculate and prove fee generation
+- **Liquidity Depth**: Prove available liquidity at different price points
+
+## 🏗️ How It Works
+
+```mermaid
+graph LR
+    A[DeFi Protocol Data] -->|Steel Library| B[zkVM Guest Program]
+    B -->|Compute Metrics| C[Generate ZK Proof]
+    C -->|Submit Onchain| D[Smart Contract]
+    D -->|Verify & Store| E[Impact Evaluators]
+    E -->|Make Decisions| F[Better Outcomes]
+```
+
+1. **Data Collection**: Guest programs read blockchain state using Steel
+2. **Computation**: Calculate metrics inside the zkVM (fully verifiable)
+3. **Proof Generation**: RISC Zero creates a cryptographic proof
+4. **Onchain Verification**: Smart contracts verify proofs with minimal gas
+5. **Decision Making**: Impact Evaluators use verified data for decisions
+
+## 👥 For Impact Evaluators
+
+### Understanding the Proofs
+
+Each proof contains:
+- **Commitment**: Cryptographic proof of the exact blockchain state used
+- **Metrics**: The calculated values (inflation, APR, etc.)
+- **Verification**: Can be checked onchain by anyone
+
+### Integration Examples
+
+```solidity
+// In your Impact Evaluator contract
+function evaluateProtocol(bytes calldata proof) external {
+    // Verify the proof
+    ProofData memory data = verifier.verify(proof);
+    
+    // Use inflation data for decisions
+    if (data.inflationBasisPoints < 200) { // Less than 2% inflation
+        // This protocol maintains stable tokenomics
+        allocateFunding(protocolAddress);
+    }
+}
+```
+
+### Use Cases
+
+Impact Evaluators can use these proofs to:
+
+- **🎯 Capital Allocation**: Direct funds to protocols with sustainable metrics
+- **📈 Performance Tracking**: Monitor protocol health over time
+- **⚖️ Fair Comparisons**: Compare protocols using verified, consistent data
+- **🛡️ Risk Assessment**: Identify concerning trends before they become critical
+- **🏆 Incentive Design**: Reward protocols based on verifiable impact
+
+## 🚀 What's Next?
+
+We're building more proofs that Impact Evaluators need:
+
+- [ ] **Cross-protocol Metrics**: Compare multiple protocols in one proof
+- [ ] **Composability Scores**: Measure protocol interconnectedness
+- [ ] **MEV Impact**: Quantify value extraction affecting users
+- [ ] **Decentralization Metrics**: Prove actual decentralization levels
+- [ ] **Social Impact Scores**: Verify real-world impact claims
+
+## 🤝 Contributing
+
+Impact Evaluators know best what metrics they need. We welcome contributions for:
+
+1. New metric calculations relevant to impact assessment
+2. Integration examples with evaluation frameworks
+3. Documentation for specific use cases
+4. Performance optimizations for faster proof generation
+
+## 📚 Resources
+
+- [RISC Zero Documentation](https://dev.risczero.com)
+- [Steel Library (Ethereum State Access)](https://github.com/risc0/risc0-ethereum/tree/main/steel)
+- [Example Integration Contracts](./contracts/src/)
+
+## 📄 License
+
+Apache 2.0 - Built for the public good.
+
+---
+
+*Built with ❤️ for Impact Evaluators making DeFi better for everyone*
