@@ -1,0 +1,21 @@
+[package]
+name = "apps"
+version = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+alloy-primitives = { workspace = true }
+anyhow = { workspace = true }
+clap = { workspace = true, features = ["derive", "env"] }
+erc20-counter-methods = { workspace = true }
+log = { workspace = true }
+risc0-ethereum-contracts = { git = "https://github.com/risc0/risc0-ethereum", branch = "release-2.0" }
+risc0-steel = { git = "https://github.com/risc0/risc0-ethereum", branch = "release-2.0", features = ["host"] }
+risc0-zkvm = { workspace = true }
+tokio = { workspace = true }
+tracing-subscriber = { workspace = true }
+url = { workspace = true }
+
+[features]
+history = ["risc0-steel/unstable-history"]
+beacon = []
